@@ -38,6 +38,7 @@ async function run() {
     // const reviewCollection= database.collection("reviewCollection");
     // const cartCollection= database.collection("cartCollection");
     const userCollection= database.collection("userCollection");
+    const sliderCollection= database.collection("sliderCollection");
     // const paymentCollection= database.collection("paymentCollection");
 
     // JWT Related API
@@ -167,6 +168,13 @@ async function run() {
       const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+
+      // Slider Collection
+      app.get('/slider',async(req,res)=>{
+        const cursor = sliderCollection.find();
+        const slider = await cursor.toArray();
+        res.send(slider);
+      })
     
     // app.get('/menu',async(req,res)=>{
     //     const cursor = menuCollection.find();
