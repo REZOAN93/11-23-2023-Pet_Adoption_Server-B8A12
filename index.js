@@ -32,38 +32,38 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     // console.log('connected')
-
     const database = client.db("PetAdoption");
     // const menuCollection = database.collection("menuCollection");
     // const reviewCollection= database.collection("reviewCollection");
     // const cartCollection= database.collection("cartCollection");
     const userCollection= database.collection("userCollection");
     const categoryCollection= database.collection("categoryCollection");
+    const EventsCollection= database.collection("EventsCollection");
     const sliderCollection= database.collection("sliderCollection");
     // const paymentCollection= database.collection("paymentCollection");
 
     // JWT Related API
-    // app.post('/jwt',async(req,res)=>{
-    //   const user=req.body
-    //   const token=jwt.sign(user,process.env.ACCESS_TOKEN,{ expiresIn: '1h' })
-    //   res.send({token})
-    // })
+    app.post('/jwt',async(req,res)=>{
+      const user=req.body
+      const token=jwt.sign(user,process.env.ACCESS_TOKEN,{ expiresIn: '1h' })
+      res.send({token})
+    })
 
     // Verify token middeleware
-    // const verifytoken=(req,res,next)=>{
-    //   if (!req.headers.authorization) {
-    //     return res.status(401).send({message:'Forbidden Access'})
-    //   }
-    //  const token=req.headers.authorization.split(' ')[1]
+    const verifytoken=(req,res,next)=>{
+      if (!req.headers.authorization) {
+        return res.status(401).send({message:'Forbidden Access'})
+      }
+     const token=req.headers.authorization.split(' ')[1]
     
-    // jwt.verify(token,process.env.ACCESS_TOKEN,(err,decoded)=>{
-    //   if (err) {
-    //     return res.status(401).send({message:'Forbidden Access'})
-    //   }
-    //   req.decoded=decoded;
-    //   next()
-    // })
-    // }
+    jwt.verify(token,process.env.ACCESS_TOKEN,(err,decoded)=>{
+      if (err) {
+        return res.status(401).send({message:'Forbidden Access'})
+      }
+      req.decoded=decoded;
+      next()
+    })
+    }
 
 
 // Payment GateWay
@@ -92,36 +92,37 @@ async function run() {
 
 
 // user verify admin after verify token
-    // const verifyAdmin=async(req,res,next)=>{
-    //   const email=req.decoded.email;
-    //   const query={email:email}
-    //   const user=await userCollection.findOne(query)
-    //   const isAdmin=user?.role==='admin'
-    //   if (!isAdmin) {
-    //     return res.status(403).send({message:'forbidden access'})
-    //   }
-    //   next()
-    // }
+    const verifyAdmin=async(req,res,next)=>{
+      const email=req.decoded.email;
+      const query={email:email}
+      const user=await userCollection.findOne(query)
+      const isAdmin=user?.role==='admin'
+      if (!isAdmin) {
+        return res.status(403).send({message:'forbidden access'})
+      }
+      next()
+    }
 
     // // users Related APi
-    // app.get('/users',verifytoken,verifyAdmin,async(req,res)=>{
-    //   const result=await userCollection.find().toArray()
-    //   res.send(result)
-    // })
+    app.get('/users',async(req,res)=>{
+      const result=await userCollection.find().toArray()
+      res.send(result)
+    })
 
-    // app.get('/user/admin/:email',verifytoken, async(req,res)=>{
-    //   const email=req.params.email
-    //   if (email!== req.decoded.email) {
-    //     return res.status(403).send({message: 'Unauthorized'})
-    //   }
-    //   const query={email:email}
-    //   const user=await userCollection.findOne(query)
-    //   let isAdmin= false;
-    //   if (user) {
-    //     isAdmin=user?.role==='admin'
-    //   }
-    //   res.send({isAdmin})
-    // })
+    app.get('/user/admin/:email', async(req,res)=>{
+      const email=req.params.email
+      // if (email!== req.decoded.email) {
+      //   return res.status(403).send({message: 'Unauthorized'})
+      // }
+      const query={email:email}
+      const user=await userCollection.findOne(query)
+      let isAdmin= false;
+      if (user) {
+        isAdmin=user?.role==='admin'
+      }
+      res.send({isAdmin})
+      console.log(isAdmin)
+    })
 
     // app.delete('/users/:id',verifytoken,verifyAdmin,async(req,res)=>{
     //   const deleteId=req.params.id;
@@ -175,6 +176,12 @@ async function run() {
         const cursor = sliderCollection.find();
         const slider = await cursor.toArray();
         res.send(slider);
+      })
+      // Event Collection
+      app.get('/events',async(req,res)=>{
+        const cursor = EventsCollection.find();
+        const events = await cursor.toArray();
+        res.send(events);
       })
 
       // Category Collection
