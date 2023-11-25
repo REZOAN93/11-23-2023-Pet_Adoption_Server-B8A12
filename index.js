@@ -38,6 +38,7 @@ async function run() {
     // const reviewCollection= database.collection("reviewCollection");
     // const cartCollection= database.collection("cartCollection");
     const userCollection= database.collection("userCollection");
+    const categoryCollection= database.collection("categoryCollection");
     const sliderCollection= database.collection("sliderCollection");
     // const paymentCollection= database.collection("paymentCollection");
 
@@ -175,6 +176,14 @@ async function run() {
         const slider = await cursor.toArray();
         res.send(slider);
       })
+
+      // Category Collection
+      app.get("/Category", async (req, res) => {
+        const cursor = categoryCollection.find();
+        const Categories = await cursor.toArray();
+        res.send(Categories);
+      });
+  
     
     // app.get('/menu',async(req,res)=>{
     //     const cursor = menuCollection.find();
