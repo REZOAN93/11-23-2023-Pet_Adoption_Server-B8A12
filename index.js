@@ -33,14 +33,15 @@ async function run() {
     // await client.connect();
     // console.log('connected')
     const database = client.db("PetAdoption");
-    // const menuCollection = database.collection("menuCollection");
+    const PetCollection = database.collection("PetCollection");
+    const AdoptionCollection = database.collection("AdoptionCollection");
     // const reviewCollection= database.collection("reviewCollection");
     // const cartCollection= database.collection("cartCollection");
     const userCollection= database.collection("userCollection");
     const categoryCollection= database.collection("categoryCollection");
     const EventsCollection= database.collection("EventsCollection");
     const sliderCollection= database.collection("sliderCollection");
-    // const paymentCollection= database.collection("paymentCollection");
+    const paymentCollection= database.collection("paymentCollection");
 
     // JWT Related API
     app.post('/jwt',async(req,res)=>{
@@ -69,23 +70,23 @@ async function run() {
 // Payment GateWay
   //--------------------------------------------------------------------------------------------//
   // Create a PaymentIntent with the order amount and currency
-//   app.post("/create-payment-intent", async (req, res) => {
-//     const { price } = req.body;
-//     console.log(price,"Price in the server for payment")
-//     const amount=parseInt(price*100)
-//     const paymentIntent = await stripe.paymentIntents.create({
-//     amount: amount,
-//     currency: "usd",
-//     payment_method_types: ["card"],
-//     // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
-//     // automatic_payment_methods: {
-//     //   enabled: true,
-//     // },
-//   });
-//   res.send({
-//     clientSecret: paymentIntent.client_secret,
-//   });
-// });
+  app.post("/create-payment-intent", async (req, res) => {
+    const { price } = req.body;
+    console.log(price,"Price in the server for payment")
+    const amount=parseInt(price*100)
+    const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount,
+    currency: "usd",
+    payment_method_types: ["card"],
+    // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+    // automatic_payment_methods: {
+    //   enabled: true,
+    // },
+  });
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
+});
 //--------------------------------------------------------------------------------------------//
 
 
@@ -104,12 +105,12 @@ async function run() {
     }
 
     // // users Related APi
-    app.get('/users',async(req,res)=>{
+    app.get('/users',verifytoken,verifyAdmin,async(req,res)=>{
       const result=await userCollection.find().toArray()
       res.send(result)
     })
 
-    app.get('/user/admin/:email', async(req,res)=>{
+    app.get('/user/admin/:email',verifytoken, async(req,res)=>{
       const email=req.params.email
       // if (email!== req.decoded.email) {
       //   return res.status(403).send({message: 'Unauthorized'})
@@ -124,25 +125,25 @@ async function run() {
       console.log(isAdmin)
     })
 
-    // app.delete('/users/:id',verifytoken,verifyAdmin,async(req,res)=>{
-    //   const deleteId=req.params.id;
-    //   const query = { _id: new ObjectId(deleteId) };
-    //   const result = await userCollection.deleteOne(query);
-    //   res.send(result)
-    //   // console.log(result)
-    // })
+    app.delete('/users/:id',verifytoken,verifyAdmin,async(req,res)=>{
+      const deleteId=req.params.id;
+      const query = { _id: new ObjectId(deleteId) };
+      const result = await userCollection.deleteOne(query);
+      res.send(result)
+      // console.log(result)
+    })
 
-    // app.patch('/users/admin/:id',verifytoken,verifyAdmin,async(req,res)=>{
-    //   const id=req.params.id;
-    //   const filter={_id:new ObjectId(id)}
-    //   const updatedDocs={
-    //     $set:{
-    //       role:'admin'
-    //     }
-    //   }
-    //   const result=await userCollection.updateOne(filter,updatedDocs);
-    //   res.send(result)
-    // })
+    app.patch('/users/admin/:id',verifytoken,verifyAdmin,async(req,res)=>{
+      const id=req.params.id;
+      const filter={_id:new ObjectId(id)}
+      const updatedDocs={
+        $set:{
+          role:'admin'
+        }
+      }
+      const result=await userCollection.updateOne(filter,updatedDocs);
+      res.send(result)
+    })
 
     app.post('/users',async(req,res)=>{
       const user=req.body;
@@ -192,18 +193,42 @@ async function run() {
       });
   
     
-    // app.get('/menu',async(req,res)=>{
-    //     const cursor = menuCollection.find();
-    //     const data=await cursor.toArray()
-    //     res.send(data)
-    // })
+    // Pet Collection data
+    app.get('/pet',async(req,res)=>{
+        const cursor = PetCollection.find({ adoption_status: 'Not Adopted' }); 
+        const data=await cursor.toArray()
+        res.send(data)
+    })
 
-  //   app.get('/menu/:id',async(req,res)=>{
-  //     const getID=req.params.id;
-  //     const query = { _id: getID };
-  //     const result = await menuCollection.findOne(query);
-  //     res.send(result)
-  // })
+    app.get("/category/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { pet_category: id };
+      const cursor = PetCollection.find(query);
+      const petByCategory = await cursor.toArray();
+      res.send(petByCategory);
+    });
+
+    app.get('/pet/:id',async(req,res)=>{
+      const getID=req.params.id;
+      const query = { _id: new ObjectId(getID) };
+      const result = await PetCollection.findOne(query);
+      res.send(result)
+  })
+
+  app.post("/requestforadoption/:id",verifytoken, async (req, res) => {
+    const PetToId = req.params.id;
+    const requestforAdoption=req.body
+    const { email } = req.body;
+    // console.log(requestforAdoption,PetToId,email,"Book Id for the new Borrow")
+    const existing = await AdoptionCollection.findOne({ email, adoptionID: PetToId });
+    if (existing) {
+      console.log()
+      return res.status(400).json({ error: "Duplicate entry. Book with the same email and bookId already exists." });
+    }
+    const result = await AdoptionCollection.insertOne(requestforAdoption);
+    res.send(result);
+    console.log(result)
+  });
 
   // app.patch('/updateItems/:id', async(req,res)=>{
   //   const getID=req.params.id;
@@ -272,20 +297,20 @@ async function run() {
   //  })
 
 
-  //  app.post('/payments',async(req,res)=>{
-  //   const payment=req.body;
-  //   console.log(payment)
-  //   const paymentresult=await paymentCollection.insertOne(payment)
-  //   // carefully delete each item from the cart
-  //   const query={
-  //     _id:{
-  //       $in:payment.cartId.map(na=>new ObjectId(na))
-  //     }
-  //   }
-  //   const deleteResult=await cartCollection.deleteMany(query)
-  //   res.send({paymentresult,deleteResult})
-  //   console.log(payment,deleteResult,'payment Saved')
-  // })
+   app.post('/payments',async(req,res)=>{
+    const payment=req.body;
+    console.log(payment)
+    const paymentresult=await paymentCollection.insertOne(payment)
+    // carefully delete each item from the cart
+    // const query={
+    //   _id:{
+    //     $in:payment.cartId.map(na=>new ObjectId(na))
+    //   }
+    // }
+    // const deleteResult=await cartCollection.deleteMany(query)
+    res.send({paymentresult})
+    console.log(payment,deleteResult,'payment Saved')
+  })
 
 
   // app.get('/payments/:email',verifytoken,async(req,res)=>{
