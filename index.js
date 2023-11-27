@@ -239,6 +239,22 @@ async function run() {
     res.send({result,results});
   });
 
+app.patch('/users/adopts/:id', async(req,res)=>{
+    const getID=req.params.id;
+    const filter = { _id: new ObjectId(getID) };
+    const options = { upsert: true };
+    const updateddocs={
+      $set:{
+        adoption_status: 'Adopted',
+        
+      }
+    }
+    const result= await PetCollection.updateOne(filter, updateddocs, options)
+    res.send(result)
+    console.log(result)
+  })
+
+
   // app.patch('/updateItems/:id', async(req,res)=>{
   //   const getID=req.params.id;
   //   const updatedData=req.body;
@@ -296,13 +312,13 @@ async function run() {
   //   //  console.log(result)
   //  })
 
-  //  app.delete('/carts/:id',async(req,res)=>{
-  //   const deleteID=req.params.id
-  //   const query = { _id: new ObjectId(deleteID) };
-  //   const result = await cartCollection.deleteOne(query);
-  //   res.send(result)
-  //   // console.log(result)
-  //  })
+   app.delete('/carts/:id',async(req,res)=>{
+    const deleteID=req.params.id
+    const query = { _id: new ObjectId(deleteID) };
+    const result = await PetCollection.deleteOne(query);
+    res.send(result)
+    // console.log(result)
+   })
 
 
    app.post('/payments',async(req,res)=>{
