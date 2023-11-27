@@ -273,29 +273,28 @@ async function run() {
     //     res.send(data)
     // })
 
-    // app.post('/additems',verifytoken,verifyAdmin,async(req,res)=>{
-    //   const data=req.body
-    //   const result=await menuCollection.insertOne(data)
-    //   res.send(result)
-    // })
+    app.post('/addpetbyuser',verifytoken,async(req,res)=>{
+      const data=req.body
+      const result=await PetCollection.insertOne(data)
+      res.send(result)
+      console.log(result)
+    })
     
+   app.get('/carts',verifytoken,async(req,res)=>{
+    const email=req.query.email;
+    const query={petAdderby:email}
+    const cursor = PetCollection.find(query);
+    const data=await cursor.toArray()
+    res.send(data) 
+   })
 
-    // cart collection
+  // cart collection
   //  app.post('/carts',async(req,res)=>{
   //     const cartItem=req.body;
   //     const result = await cartCollection.insertOne(cartItem);
   //    res.send(result)
   //   //  console.log(result)
   //  })
-
-  //  app.get('/carts',async(req,res)=>{
-  //   const email=req.query.email;
-  //   const query={email:email}
-  //   const cursor = cartCollection.find(query);
-  //   const data=await cursor.toArray()
-  //   res.send(data) 
-  //  })
-
 
   //  app.delete('/carts/:id',async(req,res)=>{
   //   const deleteID=req.params.id
