@@ -219,15 +219,24 @@ async function run() {
     const PetToId = req.params.id;
     const requestforAdoption=req.body
     const { email } = req.body;
-    // console.log(requestforAdoption,PetToId,email,"Book Id for the new Borrow")
-    const existing = await AdoptionCollection.findOne({ email, adoptionID: PetToId });
-    if (existing) {
-      console.log()
-      return res.status(400).json({ error: "Duplicate entry. Book with the same email and bookId already exists." });
+    const filter = { _id: new ObjectId(PetToId) };
+    const options = { upsert: true };
+
+    const updateddocs={
+      $set:{
+        adoption_status: "Adopted",
+      }
     }
+    const results= await PetCollection.updateOne(filter, updateddocs, options)
     const result = await AdoptionCollection.insertOne(requestforAdoption);
-    res.send(result);
-    console.log(result)
+    
+    console.log(requestforAdoption,PetToId,email,"Book Id for the new Borrow")
+    // const existing = await AdoptionCollection.findOne({ email, adoptionID: PetToId });
+    // if (existing) {
+    //   console.log()
+    //   return res.status(400).json({ error: "Duplicate entry. Book with the same email and bookId already exists." });
+    // }
+    res.send({result,results});
   });
 
   // app.patch('/updateItems/:id', async(req,res)=>{
@@ -309,7 +318,7 @@ async function run() {
     // }
     // const deleteResult=await cartCollection.deleteMany(query)
     res.send({paymentresult})
-    console.log(payment,deleteResult,'payment Saved')
+    console.log(payment,'payment Saved')
   })
 
 
