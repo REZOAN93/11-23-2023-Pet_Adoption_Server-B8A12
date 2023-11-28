@@ -35,7 +35,7 @@ async function run() {
     const database = client.db("PetAdoption");
     const PetCollection = database.collection("PetCollection");
     const AdoptionCollection = database.collection("AdoptionCollection");
-    // const reviewCollection= database.collection("reviewCollection");
+    const donationCollection= database.collection("donationCollection");
     // const cartCollection= database.collection("cartCollection");
     const userCollection= database.collection("userCollection");
     const categoryCollection= database.collection("categoryCollection");
@@ -255,25 +255,32 @@ app.patch('/users/adopts/:id', async(req,res)=>{
   })
 
 
-  // app.patch('/updateItems/:id', async(req,res)=>{
-  //   const getID=req.params.id;
-  //   const updatedData=req.body;
-  //   console.log(getID)
-  //   const filter = { _id: getID };
-  //   const options = { upsert: true };
-  //   const updateddocs={
-  //     $set:{
-  //       name: updatedData.name,
-  //       category: updatedData.category,
-  //       recipe: updatedData.recipe,
-  //       image: updatedData.image,
-  //       price: updatedData.price
-  //     }
-  //   }
-  //   const result= await menuCollection.updateOne(filter, updateddocs, options)
-  //   res.send(result)
-  //   console.log(result)
-  // })
+  app.patch('/updatePet/:id', async(req,res)=>{
+    const getID=req.params.id;
+    const updatedData=req.body;
+    console.log(getID,updatedData)
+    const filter = { _id: new ObjectId(getID) };
+    const options = { upsert: true };
+    const updateddocs={
+      $set:{
+          image: updatedData.image,
+          pet_name: updatedData.pet_name,
+          pet_age: updatedData.pet_age,
+          pet_category: updatedData.pet_category,
+          pet_location: updatedData.pet_location,
+          short_description: updatedData.short_description,
+          long_description: updatedData.long_description,
+          adoption_status: updatedData.adoption_status,
+          max_donation_amount: updatedData.max_donation_amount,
+          donated_amount: updatedData.donated_amount,
+          date_added: updatedData.date_added,
+          petAdderby: updatedData.petAdderby,
+      }
+    }
+    const result= await PetCollection.updateOne(filter, updateddocs, options)
+    res.send(result)
+    console.log(result)
+  })
   
     // app.delete('/menu/:id',verifytoken,verifyAdmin,async(req,res)=>{
     //   const deleteId=req.params.id;
@@ -292,6 +299,12 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     app.post('/addpetbyuser',verifytoken,async(req,res)=>{
       const data=req.body
       const result=await PetCollection.insertOne(data)
+      res.send(result)
+      console.log(result)
+    })
+    app.post('/addDonationData',verifytoken,async(req,res)=>{
+      const data=req.body
+      const result=await donationCollection.insertOne(data)
       res.send(result)
       console.log(result)
     })
