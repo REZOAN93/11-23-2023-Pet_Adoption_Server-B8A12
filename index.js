@@ -324,12 +324,43 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     const data=await cursor.toArray()
     res.send(data) 
    })
+
    app.get('/campaigns/:id',async(req,res)=>{
     const id=req.params.id;
     const query={_id:new ObjectId(id)}
     const cursor = await donationCollection.findOne(query);
     res.send(cursor) 
    })
+
+   app.patch('/donationupdate/:id', async(req,res)=>{
+    const getID=req.params.id;
+    const updatedData=req.body;
+    // console.log(getID,updatedData)
+    const filter = { _id: new ObjectId(getID) };
+    const options = { upsert: true };
+    const updateddocs={
+      $set:{
+          pet_name:updatedData.pet_name, 
+          image:updatedData.image, 
+          donationStatus:updatedData.donationStatus, 
+          UserCandonateamount:updatedData.UserCandonateamount, 
+          lastdateforDonation:updatedData.lastdateforDonation, 
+          CampaignAddedby:updatedData.CampaignAddedby, 
+          pet_age:updatedData.pet_age, 
+          pet_category:updatedData.pet_category, 
+          pet_location:updatedData.pet_location, 
+          short_description:updatedData.short_description, 
+          long_description:updatedData.long_description, 
+          adoption_status:updatedData.adoption_status, 
+          max_donation_amount:updatedData.max_donation_amount, 
+          donated_amount:updatedData.donated_amount, 
+          date_added:updatedData.date_added
+      }
+    }
+    const result= await donationCollection.updateOne(filter, updateddocs, options)
+    res.send(result)
+    console.log(result)
+  })
 
    app.patch('/updateDonationActive/:id', async(req,res)=>{
     const getID=req.params.id;
@@ -368,7 +399,14 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     res.send(result)
     // console.log(result)
    })
-
+   
+   app.get('/adoptionRequest',verifytoken,async(req,res)=>{
+    const email=req.query.email;
+    const query={petAdderby:email}
+    const cursor = AdoptionCollection.find(query);
+    const data=await cursor.toArray()
+    res.send(data) 
+   })
 
    app.post('/payments',async(req,res)=>{
     const payment=req.body;
@@ -397,15 +435,21 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     res.send(result)
   })
 
+  app.delete('/payments/:id',verifytoken,async(req,res)=>{
+    const deleteID=req.params.id
+    const query = { _id: new ObjectId(deleteID) };
+    const result = await paymentCollection.deleteOne(query);
+    res.send(result)
+   })
 
-  // app.get('/payments/:email',verifytoken,async(req,res)=>{
-  //     if (req.params.email!== req.decoded.email) {
-  //       return res.status(403).send({message: 'Unauthorized'})
-  //     }
-  //   const query={email: req.params.email}
-  //   const result= await paymentCollection.find(query).toArray()
-  //   res.send(result)
-  // })
+  app.get('/payments/:email',verifytoken,async(req,res)=>{
+      if (req.params.email!== req.decoded.email) {
+        return res.status(403).send({message: 'Unauthorized'})
+      }
+    const query={paidbyuser: req.params.email}
+    const result= await paymentCollection.find(query).toArray()
+    res.send(result)
+  })
 
   // State for Analysis
 
