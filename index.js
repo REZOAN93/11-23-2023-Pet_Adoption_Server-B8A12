@@ -316,6 +316,42 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     const data=await cursor.toArray()
     res.send(data) 
    })
+   
+   app.get('/campaigns',verifytoken,async(req,res)=>{
+    const email=req.query.email;
+    const query={CampaignAddedby:email}
+    const cursor = donationCollection.find(query);
+    const data=await cursor.toArray()
+    res.send(data) 
+   })
+   app.get('/campaigns/:id',async(req,res)=>{
+    const id=req.params.id;
+    const query={_id:new ObjectId(id)}
+    const cursor = await donationCollection.findOne(query);
+    res.send(cursor) 
+   })
+
+   app.patch('/updateDonationActive/:id', async(req,res)=>{
+    const getID=req.params.id;
+    const updatedData=req.body;
+    console.log(getID,updatedData)
+    const filter = { _id: new ObjectId(getID) };
+    const options = { upsert: true };
+    const updateddocs={
+      $set:{
+          donationStatus: updatedData.status,
+      }
+    }
+    const result= await donationCollection.updateOne(filter, updateddocs, options)
+    res.send(result)
+    console.log(result)
+  })
+
+   app.get('/allDonation',async(req,res)=>{
+    const cursor = donationCollection.find({ donationStatus: 'Available' });
+    const data=await cursor.toArray()
+    res.send(data) 
+   })
 
   // cart collection
   //  app.post('/carts',async(req,res)=>{
