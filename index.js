@@ -200,6 +200,18 @@ async function run() {
         res.send(data)
     })
 
+    app.get('/allpets',verifytoken,verifyAdmin,async(req,res)=>{
+      const result=await PetCollection.find().toArray()
+      res.send(result)
+    })
+
+    app.delete('/petInformation/:id',verifytoken,verifyAdmin,async(req,res)=>{
+      const deleteId=req.params.id;
+      const query = { _id:new ObjectId(deleteId)};
+      const result = await PetCollection.deleteOne(query);
+      res.send(result)
+    })
+
     app.get("/category/:id", async (req, res) => {
       const id = req.params.id;
       const query = { pet_category: id };
@@ -282,13 +294,7 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     console.log(result)
   })
   
-    // app.delete('/menu/:id',verifytoken,verifyAdmin,async(req,res)=>{
-    //   const deleteId=req.params.id;
-    //   const query = { _id:deleteId};
-    //   const result = await menuCollection.deleteOne(query);
-    //   res.send(result)
-    //   // console.log(result)
-    // })
+    
 
     // app.get('/reviews',async(req,res)=>{
     //     const cursor = reviewCollection.find();
@@ -378,8 +384,24 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     console.log(result)
   })
 
+   app.patch('/updateInvitationRequest/:id', async(req,res)=>{
+    const getID=req.params.id;
+    const updatedData=req.body;
+    console.log(getID,updatedData)
+    const filter = { _id: new ObjectId(getID) };
+    const options = { upsert: true };
+    const updateddocs={
+      $set:{
+        adoptionRequest: updatedData.adoptionRequest,
+      }
+    }
+    const result= await AdoptionCollection.updateOne(filter, updateddocs, options)
+    res.send(result)
+    console.log(result)
+  })
+
    app.get('/allDonation',async(req,res)=>{
-    const cursor = donationCollection.find({ donationStatus: 'Available' });
+    const cursor = donationCollection.find();
     const data=await cursor.toArray()
     res.send(data) 
    })
@@ -399,7 +421,8 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     res.send(result)
     // console.log(result)
    })
-   
+
+
    app.get('/adoptionRequest',verifytoken,async(req,res)=>{
     const email=req.query.email;
     const query={petAdderby:email}
@@ -432,6 +455,21 @@ app.patch('/users/adopts/:id', async(req,res)=>{
   })
   app.get('/alldontatorsdata',async(req,res)=>{
     const result= await paymentCollection.find().toArray()
+    res.send(result)
+  })
+
+  app.patch('/updateadminAdoptionstatus/:id',verifytoken,verifyAdmin, async(req,res)=>{
+    const getID=req.params.id;
+    const updatedData=req.body;
+    console.log(getID,updatedData)
+    const filter = { _id: new ObjectId(getID) };
+    const options = { upsert: true };
+    const updateddocs={
+      $set:{
+        adoption_status: updatedData.status,
+      }
+    }
+    const result= await PetCollection.updateOne(filter, updateddocs, options)
     res.send(result)
   })
 
