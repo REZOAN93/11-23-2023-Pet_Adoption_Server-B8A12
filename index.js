@@ -373,16 +373,28 @@ app.patch('/users/adopts/:id', async(req,res)=>{
    app.post('/payments',async(req,res)=>{
     const payment=req.body;
     console.log(payment)
+    const donationIdToUpdate = payment.CampaignsId;
+    const donationAmountToAdd = parseFloat(payment.donated_amount);
     const paymentresult=await paymentCollection.insertOne(payment)
-    // carefully delete each item from the cart
-    // const query={
-    //   _id:{
-    //     $in:payment.cartId.map(na=>new ObjectId(na))
-    //   }
-    // }
-    // const deleteResult=await cartCollection.deleteMany(query)
-    res.send({paymentresult})
+    const currentDonation = await donationCollection.findOne({ _id: new ObjectId(donationIdToUpdate) });
+    const updatedDonatedAmount = parseFloat(currentDonation.donated_amount) + donationAmountToAdd;
+    const updateDonation=await donationCollection.updateOne(
+      { _id: new ObjectId(donationIdToUpdate) },
+      { $set: { donated_amount: updatedDonatedAmount } }
+     );
+     res.send({paymentresult,updateDonation})
     console.log(payment,'payment Saved')
+  })
+
+  app.get('/dontatorsdata/:id',verifytoken,async(req,res)=>{
+    const paymentId=req.params.id;
+    const query={CampaignsId: paymentId}
+    const result= await paymentCollection.find(query).toArray()
+    res.send(result)
+  })
+  app.get('/alldontatorsdata',async(req,res)=>{
+    const result= await paymentCollection.find().toArray()
+    res.send(result)
   })
 
 
