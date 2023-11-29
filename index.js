@@ -204,6 +204,11 @@ async function run() {
       const result=await PetCollection.find().toArray()
       res.send(result)
     })
+    
+    app.get('/alldonationcampaigns',verifytoken,verifyAdmin,async(req,res)=>{
+      const result=await donationCollection.find().toArray()
+      res.send(result)
+    })
 
     app.delete('/petInformation/:id',verifytoken,verifyAdmin,async(req,res)=>{
       const deleteId=req.params.id;
@@ -211,6 +216,14 @@ async function run() {
       const result = await PetCollection.deleteOne(query);
       res.send(result)
     })
+
+    app.delete('/donationcampaigndelete/:id',verifytoken,verifyAdmin,async(req,res)=>{
+      const deleteId=req.params.id;
+      const query = { _id:new ObjectId(deleteId)};
+      const result = await donationCollection.deleteOne(query);
+      res.send(result)
+    })
+
 
     app.get("/category/:id", async (req, res) => {
       const id = req.params.id;
@@ -368,7 +381,7 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     console.log(result)
   })
 
-   app.patch('/updateDonationActive/:id', async(req,res)=>{
+   app.patch('/updateDonationActive/:id', verifytoken, async(req,res)=>{
     const getID=req.params.id;
     const updatedData=req.body;
     console.log(getID,updatedData)
@@ -383,6 +396,23 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     res.send(result)
     console.log(result)
   })
+
+   app.patch('/updateDonationStatus/:id',verifytoken,verifyAdmin, async(req,res)=>{
+    const getID=req.params.id;
+    const updatedData=req.body;
+    console.log(getID,updatedData)
+    const filter = { _id: new ObjectId(getID) };
+    const options = { upsert: true };
+    const updateddocs={
+      $set:{
+          donationStatus: updatedData.status,
+      }
+    }
+    const result= await donationCollection.updateOne(filter, updateddocs, options)
+    res.send(result)
+    console.log(result)
+  })
+
 
    app.patch('/updateInvitationRequest/:id', async(req,res)=>{
     const getID=req.params.id;
