@@ -335,6 +335,23 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     const data=await cursor.toArray()
     res.send(data) 
    })
+
+   app.get('/userAddedpet',verifytoken,async(req,res)=>{
+    const email=req.query.email;
+    const page=parseInt(req.query.page)||1;
+    const size=parseInt(req.query.size)||10;
+    const query={petAdderby:email}
+    const totalItems = await PetCollection.countDocuments(query);
+    const totalPages = Math.ceil(totalItems / size);
+    const cursor = PetCollection.find(query).skip((page - 1)* size).limit(size);
+    const data = await cursor.toArray();
+    res.send({
+      data,
+      page,
+      totalPages,
+      totalItems,
+  });
+   })
    
    app.get('/campaigns',verifytoken,async(req,res)=>{
     const email=req.query.email;
