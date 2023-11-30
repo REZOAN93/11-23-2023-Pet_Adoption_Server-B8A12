@@ -439,7 +439,7 @@ app.patch('/users/adopts/:id', async(req,res)=>{
     const options = { upsert: true };
     const updateddocs={
       $set:{
-        adoptionRequest: updatedData.adoptionRequest,
+        adoptionRequest: updatedData.status,
       }
     }
     const result= await AdoptionCollection.updateOne(filter, updateddocs, options)
